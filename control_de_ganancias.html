@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0F172A">
+  <title>Control de Ganancias</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bgDark: '#0F172A',
+            cardDark: '#1E293B',
+            accent: '#22C55E',
+            textLight: '#F1F5F9',
+            textMuted: '#94A3B8',
+            danger: '#EF4444'
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Ocultar barra de desplazamiento manteniendo funcionalidad */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-bgDark text-textLight min-h-screen flex flex-col font-sans antialiased select-none pb-20">
+
+  <!-- Header -->
+  <header class="bg-cardDark px-4 py-3 border-b border-slate-800 flex justify-between items-center sticky top-0 z-10 shadow-md">
+    <div class="flex items-center space-x-2">
+      <i data-lucide="wallet" class="text-accent w-6 h-6"></i>
+      <h1 class="text-lg font-bold tracking-wide">Control de Ganancias</h1>
+    </div>
+    <div class="flex space-x-2">
+      <button onclick="exportarDatos()" class="p-2 text-textMuted hover:text-textLight rounded-lg hover:bg-slate-700 transition" title="Exportar datos">
+        <i data-lucide="download" class="w-5 h-5"></i>
+      </button>
+      <label class="p-2 text-textMuted hover:text-textLight rounded-lg hover:bg-slate-700 transition cursor-pointer" title="Importar datos">
+        <i data-lucide="upload" class="w-5 h-5"></i>
+        <input type="file" id="importInput" accept=".json" onchange="importarDatos(event)" class="hidden">
+      </label>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 p-4 max-w-md mx-auto w-full">
+
+    <!-- Pestaña 1: Movimientos -->
+    <section id="tab-movimientos" class="space-y-4">
+      <h2 class="text-base font-semibold text-textLight">Nuevo ingreso</h2>
+      
+      <!-- Formulario -->
+      <div class="bg-cardDark p-4 rounded-xl space-y-3 border border-slate-800/80 shadow-sm">
+        <div>
+          <label class="block text-xs text-textMuted mb-1">Fecha</label>
+          <input type="date" id="inputFecha" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
+        </div>
+        <div>
+          <label class="block text-xs text-textMuted mb-1">De dónde</label>
+          <input type="text" id="inputOrigen" placeholder="Ej. Laura clase, Microworkers..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs text-textMuted mb-1">Categoría</label>
+            <select id="inputCategoria" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
+              <!-- Categorías inyectadas vía JS -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-textMuted mb-1">Importe (€)</label>
+            <input type="number" step="0.01" id="inputImporte" placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-textMuted mb-1">Notas (opcional)</label>
+          <input type="text" id="inputNotas" placeholder="Detalles extra..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
+        </div>
+        <button onclick="anadirMovimiento()" class="w-full bg-accent hover:bg-emerald-600 text-slate-950 font-bold py-2.5 rounded-lg transition duration-200 mt-2 text-sm shadow">
+          Añadir ingreso
+        </button>
+      </div>
+
+      <h2 class="text-base font-semibold text-textLight pt-2">Historial</h2>
+      
+      <!-- Lista de movimientos -->
+      <div id="listaMovimientos" class="space-y-2">
+        <!-- Inyectado dinámicamente -->
+      </div>
+    </section>
+
+    <!-- Pestaña 2: Resumen -->
+    <section id="tab-resumen" class="space-y-4 hidden">
+      <!-- Tarjetas de estadísticas -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-cardDark p-3 rounded-xl text-center border border-slate-800">
+          <p class="text-[10px] uppercase font-semibold text-textMuted tracking-wider">TOTAL GANADO</p>
+          <p id="statTotal" class="text-base font-bold text-accent mt-1">0.00 €</p>
+        </div>
+        <div class="bg-cardDark p-3 rounded-xl text-center border border-slate-800">
+          <p class="text-[10px] uppercase font-semibold text-textMuted tracking-wider">Nº INGRESOS</p>
+          <p id="statCount" class="text-base font-bold text-accent mt-1">0</p>
+        </div>
+        <div class="bg-cardDark p-3 rounded-xl text-center border border-slate-800">
+          <p class="text-[10px] uppercase font-semibold text-textMuted tracking-wider">MEDIA / ING.</p>
+          <p id="statMedia" class="text-base font-bold text-accent mt-1">0.00 €</p>
+        </div>
+      </div>
+
+      <!-- Objetivo de Ganancias -->
+      <div class="bg-cardDark p-4 rounded-xl space-y-3 border border-slate-800">
+        <h3 class="text-xs font-bold text-textMuted uppercase tracking-wider">OBJETIVO DE GANANCIAS</h3>
+        <div class="flex space-x-2">
+          <input type="number" step="0.01" id="inputObjetivo" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
+          <button onclick="guardarObjetivo()" class="bg-accent hover:bg-emerald-600 text-slate-950 font-semibold px-4 py-2 rounded-lg text-xs transition">
+            Guardar
+          </button>
+        </div>
+        <!-- Barra de Progreso -->
+        <div class="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-800">
+          <div id="progresoBarra" class="bg-accent h-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <p id="progresoTexto" class="text-xs text-textMuted text-center">Te faltan 0.00 € · 0% del objetivo</p>
+      </div>
+
+      <!-- Ganancias por Categoría -->
+      <h3 class="text-xs font-bold text-textMuted uppercase tracking-wider pt-2">GANANCIAS POR CATEGORÍA</h3>
+      <div id="listaCategorias" class="space-y-2">
+        <!-- Inyectado dinámicamente -->
+      </div>
+    </section>
+
+    <!-- Pestaña 3: Mensual -->
+    <section id="tab-mensual" class="space-y-3 hidden">
+      <div>
+        <h2 class="text-base font-semibold text-textLight">Control mensual</h2>
+        <p class="text-xs text-textMuted">Total ganado agrupado por mes, según la fecha de cada ingreso.</p>
+      </div>
+      <div id="listaMensual" class="space-y-2 pt-2">
+        <!-- Inyectado dinámicamente -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Navegación Inferior Móvil -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-cardDark border-t border-slate-800 flex justify-around py-2 z-20">
+    <button onclick="switchTab('movimientos')" id="nav-movimientos" class="flex flex-col items-center text-accent py-1 px-3">
+      <i data-lucide="list-plus" class="w-5 h-5"></i>
+      <span class="text-[11px] mt-1 font-medium">Movimientos</span>
+    </button>
+    <button onclick="switchTab('resumen')" id="nav-resumen" class="flex flex-col items-center text-textMuted py-1 px-3">
+      <i data-lucide="pie-chart" class="w-5 h-5"></i>
+      <span class="text-[11px] mt-1 font-medium">Resumen</span>
+    </button>
+    <button onclick="switchTab('mensual')" id="nav-mensual" class="flex flex-col items-center text-textMuted py-1 px-3">
+      <i data-lucide="calendar" class="w-5 h-5"></i>
+      <span class="text-[11px] mt-1 font-medium">Mensual</span>
+    </button>
+  </nav>
+
+  <!-- JavaScript App Logic -->
+  <script>
+    const CATEGORIAS = ["Clases", "Microworkers", "LEE", "UJI", "Trabajo", "Venta", "Otros"];
+    const MESES_ES = {
+      1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril", 5: "Mayo", 6: "Junio",
+      7: "Julio", 8: "Agosto", 9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+    };
+
+    let appData = {
+      movimientos: [],
+      objetivo: 100.0
+    };
+
+    // Inicialización
+    document.addEventListener("DOMContentLoaded", () => {
+      cargarDatos();
+      inicializarFormulario();
+      renderizarTodo();
+      lucide.createIcons();
+    });
+
+    function cargarDatos() {
+      const guardado = localStorage.getItem("ganancias_data");
+      if (guardado) {
+        try {
+          appData = JSON.parse(guardado);
+        } catch (e) {
+          console.error("Error al cargar localStorage", e);
+        }
+      }
+    }
+
+    function guardarDatos() {
+      localStorage.setItem("ganancias_data", JSON.stringify(appData));
+    }
+
+    function inicializarFormulario() {
+      // Fecha actual por defecto YYYY-MM-DD
+      document.getElementById("inputFecha").value = new Date().toISOString().split("T")[0];
+
+      // Llenar selector de categorías
+      const selectCat = document.getElementById("inputCategoria");
+      selectCat.innerHTML = CATEGORIAS.map(c => `<option value="${c}">${c}</option>`).join("");
+
+      document.getElementById("inputObjetivo").value = appData.objetivo || 100.0;
+    }
+
+    function anadirMovimiento() {
+      const fecha = document.getElementById("inputFecha").value || new Date().toISOString().split("T")[0];
+      const origen = document.getElementById("inputOrigen").value.trim();
+      const categoria = document.getElementById("inputCategoria").value;
+      const importeRaw = document.getElementById("inputImporte").value.replace(",", ".");
+      const importe = parseFloat(importeRaw);
+      const notas = document.getElementById("inputNotas").value.trim();
+
+      if (!origen) {
+        alert("Por favor, indica de dónde viene el ingreso.");
+        return;
+      }
+      if (isNaN(importe) || importe <= 0) {
+        alert("Introduce un importe válido mayor a 0.");
+        return;
+      }
+
+      appData.movimientos.push({ fecha, origen, categoria, importe, notas });
+      guardarDatos();
+
+      // Resetear campos
+      document.getElementById("inputOrigen").value = "";
+      document.getElementById("inputImporte").value = "";
+      document.getElementById("inputNotas").value = "";
+
+      renderizarTodo();
+    }
+
+    function borrarMovimiento(index) {
+      if (confirm("¿Seguro que deseas eliminar este ingreso?")) {
+        appData.movimientos.splice(index, 1);
+        guardarDatos();
+        renderizarTodo();
+      }
+    }
+
+    function guardarObjetivo() {
+      const val = parseFloat(document.getElementById("inputObjetivo").value.replace(",", "."));
+      appData.objetivo = isNaN(val) ? 100.0 : val;
+      guardarDatos();
+      renderizarTodo();
+    }
+
+    function renderizarTodo() {
+      renderizarMovimientos();
+      renderizarResumen();
+      renderizarMensual();
+    }
+
+    function renderizarMovimientos() {
+      const contenedor = document.getElementById("listaMovimientos");
+      if (appData.movimientos.length === 0) {
+        contenedor.innerHTML = `<p class="text-xs text-textMuted text-center py-6">Aún no hay ingresos registrados.</p>`;
+        return;
+      }
+
+      // Orden descendente (más recientes primero)
+      contenedor.innerHTML = appData.movimientos.map((m, idx) => `
+        <div class="bg-cardDark p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+          <div class="flex-1 min-w-0 pr-2">
+            <p class="text-sm font-semibold text-textLight truncate">${m.origen} <span class="text-textMuted font-normal">· ${m.categoria}</span></p>
+            <p class="text-xs text-textMuted">${m.fecha}${m.notas ? ' · ' + m.notas : ''}</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <span class="text-sm font-bold text-accent whitespace-nowrap">+${m.importe.toFixed(2)} €</span>
+            <button onclick="borrarMovimiento(${idx})" class="text-textMuted hover:text-danger p-1 transition">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      `).reverse().join("");
+
+      lucide.createIcons();
+    }
+
+    function renderizarResumen() {
+      const movs = appData.movimientos;
+      const total = movs.reduce((acc, m) => acc + m.importe, 0);
+      const count = movs.length;
+      const media = count > 0 ? total / count : 0;
+      const objetivo = appData.objetivo || 100.0;
+
+      document.getElementById("statTotal").innerText = `${total.toFixed(2)} €`;
+      document.getElementById("statCount").innerText = count;
+      document.getElementById("statMedia").innerText = `${media.toFixed(2)} €`;
+
+      // Progreso
+      const porcentaje = Math.min(100, objetivo > 0 ? (total / objetivo) * 100 : 0);
+      const faltan = Math.max(0, objetivo - total);
+      document.getElementById("progresoBarra").style.width = `${porcentaje}%`;
+      document.getElementById("progresoTexto").innerText = `Te faltan ${faltan.toFixed(2)} € · ${porcentaje.toFixed(0)}% del objetivo`;
+
+      // Desglose por categoría
+      const porCat = {};
+      movs.forEach(m => {
+        porCat[m.categoria] = (porCat[m.categoria] || 0) + m.importe;
+      });
+
+      const categoriasOrdenadas = Object.entries(porCat).sort((a, b) => b[1] - a[1]);
+      const contenedorCat = document.getElementById("listaCategorias");
+
+      if (categoriasOrdenadas.length === 0) {
+        contenedorCat.innerHTML = `<p class="text-xs text-textMuted text-center py-4">Aún no hay categorías registradas.</p>`;
+        return;
+      }
+
+      contenedorCat.innerHTML = categoriasOrdenadas.map(([cat, val]) => {
+        const pct = total > 0 ? (val / total) * 100 : 0;
+        return `
+          <div class="bg-cardDark px-3 py-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-sm">
+            <span class="text-textLight">${cat}</span>
+            <span class="font-bold text-accent">${val.toFixed(2)} € <span class="text-xs text-textMuted font-normal">(${pct.toFixed(0)}%)</span></span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderizarMensual() {
+      const movs = appData.movimientos;
+      const porMes = {};
+
+      movs.forEach(m => {
+        if (!m.fecha) return;
+        const [year, month] = m.fecha.split("-").map(Number);
+        if (!year || !month) return;
+        const key = `${year}-${month}`;
+        porMes[key] = (porMes[key] || 0) + m.importe;
+      });
+
+      const mesesOrdenados = Object.keys(porMes).sort((a, b) => {
+        const [yA, mA] = a.split("-").map(Number);
+        const [yB, mB] = b.split("-").map(Number);
+        return yB - yA || mB - mA;
+      });
+
+      const contenedorMensual = document.getElementById("listaMensual");
+
+      if (mesesOrdenados.length === 0) {
+        contenedorMensual.innerHTML = `<p class="text-xs text-textMuted text-center py-6">Aún no hay ingresos registrados.</p>`;
+        return;
+      }
+
+      contenedorMensual.innerHTML = mesesOrdenados.map(key => {
+        const [year, month] = key.split("-").map(Number);
+        const totalMes = porMes[key];
+        const nombreMes = MESES_ES[month] || `Mes ${month}`;
+        return `
+          <div class="bg-cardDark px-4 py-3 rounded-xl border border-slate-800 flex justify-between items-center">
+            <span class="text-sm font-medium text-textLight">${nombreMes} ${year}</span>
+            <span class="text-sm font-bold text-accent">${totalMes.toFixed(2)} €</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // Cambio de pestañas
+    function switchTab(tabName) {
+      ["movimientos", "resumen", "mensual"].forEach(t => {
+        const sec = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`nav-${t}`);
+        if (t === tabName) {
+          sec.classList.remove("hidden");
+          btn.classList.add("text-accent");
+          btn.classList.remove("text-textMuted");
+        } else {
+          sec.classList.add("hidden");
+          btn.classList.remove("text-accent");
+          btn.classList.add("text-textMuted");
+        }
+      });
+    }
+
+    // Copia de seguridad
+    function exportarDatos() {
+      const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ganancias_backup_${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importarDatos(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data && Array.isArray(data.movimientos)) {
+            appData = data;
+            guardarDatos();
+            renderizarTodo();
+            alert("¡Datos importados correctamente!");
+          } else {
+            alert("El archivo subido no tiene un formato válido.");
+          }
+        } catch (err) {
+          alert("Error al leer el archivo JSON.");
+        }
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
