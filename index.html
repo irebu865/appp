@@ -2,12 +2,16 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0F172A">
+  <meta name="apple-mobile-web-app-title" content="Ganancias">
+  <meta name="theme-color" content="#FDF6EC">
   <title>Control de Ganancias</title>
   
+  <!-- Web App Manifest Web embebido -->
+  <link rel="manifest" href='data:application/manifest+json,{"name":"Control de Ganancias","short_name":"Ganancias","start_url":".","display":"standalone","background_color":"#FDF6EC","theme_color":"#E37F4D","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2489/2489756.png","sizes":"512x512","type":"image/png"}]}'>
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -15,12 +19,16 @@
       theme: {
         extend: {
           colors: {
-            bgDark: '#0F172A',
-            cardDark: '#1E293B',
-            accent: '#22C55E',
-            textLight: '#F1F5F9',
-            textMuted: '#94A3B8',
-            danger: '#EF4444'
+            bgDark: '#FDF6EC',
+            cardDark: '#FFF1DF',
+            inputBg: '#FFFFFF',
+            accent: '#E37F4D',
+            accentDark: '#C4602E',
+            textLight: '#3A2415',
+            textMuted: '#A9805C',
+            borderSoft: '#F0D6B8',
+            danger: '#E4572E',
+            ink: '#2A1608'
           }
         }
       }
@@ -29,24 +37,39 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* Ocultar barra de desplazamiento manteniendo funcionalidad */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    :root { background: #FDF6EC; }
+    body { background: #FDF6EC; }
+    header.app-header { padding-top: calc(0.75rem + env(safe-area-inset-top, 0px)); }
+    nav.app-nav { padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)); }
+    @keyframes confetti-fall {
+      0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0.9; }
+    }
+    .confetti-piece {
+      position: absolute;
+      top: -10px;
+      width: 8px;
+      height: 14px;
+      border-radius: 2px;
+      animation: confetti-fall linear forwards;
+    }
   </style>
 </head>
 <body class="bg-bgDark text-textLight min-h-screen flex flex-col font-sans antialiased select-none pb-20">
 
   <!-- Header -->
-  <header class="bg-cardDark px-4 py-3 border-b border-slate-800 flex justify-between items-center sticky top-0 z-10 shadow-md">
+  <header class="app-header bg-cardDark px-4 py-3 border-b border-borderSoft flex justify-between items-center sticky top-0 z-10 shadow-md">
     <div class="flex items-center space-x-2">
       <i data-lucide="wallet" class="text-accent w-6 h-6"></i>
       <h1 class="text-lg font-bold tracking-wide">Control de Ganancias</h1>
     </div>
     <div class="flex space-x-2">
-      <button onclick="exportarDatos()" class="p-2 text-textMuted hover:text-textLight rounded-lg hover:bg-slate-700 transition" title="Exportar datos">
+      <button onclick="exportarDatos()" class="p-2 text-textMuted hover:text-textLight rounded-lg hover:bg-accent/10 transition" title="Exportar datos">
         <i data-lucide="download" class="w-5 h-5"></i>
       </button>
-      <label class="p-2 text-textMuted hover:text-textLight rounded-lg hover:bg-slate-700 transition cursor-pointer" title="Importar datos">
+      <label class="p-2 text-textMuted hover:text-textLight rounded-lg hover:bg-accent/10 transition cursor-pointer" title="Importar datos">
         <i data-lucide="upload" class="w-5 h-5"></i>
         <input type="file" id="importInput" accept=".json" onchange="importarDatos(event)" class="hidden">
       </label>
@@ -60,83 +83,95 @@
     <section id="tab-movimientos" class="space-y-4">
       <h2 class="text-base font-semibold text-textLight">Nuevo ingreso</h2>
       
-      <!-- Formulario -->
-      <div class="bg-cardDark p-4 rounded-xl space-y-3 border border-slate-800/80 shadow-sm">
+      <div class="bg-cardDark p-4 rounded-xl space-y-3 border border-borderSoft/80 shadow-sm">
         <div>
           <label class="block text-xs text-textMuted mb-1">Fecha</label>
-          <input type="date" id="inputFecha" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
+          <input type="date" id="inputFecha" class="w-full bg-inputBg border border-borderSoft rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
         </div>
         <div>
           <label class="block text-xs text-textMuted mb-1">De dónde</label>
-          <input type="text" id="inputOrigen" placeholder="Ej. Laura clase, Microworkers..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
+          <input type="text" id="inputOrigen" placeholder="Ej. Laura clase, Microworkers..." class="w-full bg-inputBg border border-borderSoft rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs text-textMuted mb-1">Categoría</label>
-            <select id="inputCategoria" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
-              <!-- Categorías inyectadas vía JS -->
+            <select id="inputCategoria" class="w-full bg-inputBg border border-borderSoft rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
             </select>
           </div>
           <div>
             <label class="block text-xs text-textMuted mb-1">Importe (€)</label>
-            <input type="number" step="0.01" id="inputImporte" placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
+            <input type="number" step="0.01" id="inputImporte" placeholder="0.00" class="w-full bg-inputBg border border-borderSoft rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
           </div>
         </div>
         <div>
           <label class="block text-xs text-textMuted mb-1">Notas (opcional)</label>
-          <input type="text" id="inputNotas" placeholder="Detalles extra..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
+          <input type="text" id="inputNotas" placeholder="Detalles extra..." class="w-full bg-inputBg border border-borderSoft rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
         </div>
-        <button onclick="anadirMovimiento()" class="w-full bg-accent hover:bg-emerald-600 text-slate-950 font-bold py-2.5 rounded-lg transition duration-200 mt-2 text-sm shadow">
-          Añadir ingreso
-        </button>
+        <div class="flex gap-2 mt-2">
+          <button onclick="anadirMovimiento()" id="btnGuardarMovimiento" class="flex-1 bg-accent hover:bg-accentDark text-ink font-bold py-2.5 rounded-lg transition duration-200 text-sm shadow">
+            Añadir ingreso
+          </button>
+          <button onclick="cancelarEdicion()" id="btnCancelarEdicion" class="hidden px-4 py-2.5 rounded-lg text-sm font-semibold text-textMuted border border-borderSoft hover:bg-accent/10 transition">
+            Cancelar
+          </button>
+        </div>
       </div>
 
       <h2 class="text-base font-semibold text-textLight pt-2">Historial</h2>
       
-      <!-- Lista de movimientos -->
       <div id="listaMovimientos" class="space-y-2">
-        <!-- Inyectado dinámicamente -->
       </div>
     </section>
 
     <!-- Pestaña 2: Resumen -->
     <section id="tab-resumen" class="space-y-4 hidden">
-      <!-- Tarjetas de estadísticas -->
       <div class="grid grid-cols-3 gap-2">
-        <div class="bg-cardDark p-3 rounded-xl text-center border border-slate-800">
+        <div class="bg-cardDark p-3 rounded-xl text-center border border-borderSoft">
           <p class="text-[10px] uppercase font-semibold text-textMuted tracking-wider">TOTAL GANADO</p>
           <p id="statTotal" class="text-base font-bold text-accent mt-1">0.00 €</p>
         </div>
-        <div class="bg-cardDark p-3 rounded-xl text-center border border-slate-800">
+        <div class="bg-cardDark p-3 rounded-xl text-center border border-borderSoft">
           <p class="text-[10px] uppercase font-semibold text-textMuted tracking-wider">Nº INGRESOS</p>
           <p id="statCount" class="text-base font-bold text-accent mt-1">0</p>
         </div>
-        <div class="bg-cardDark p-3 rounded-xl text-center border border-slate-800">
+        <div class="bg-cardDark p-3 rounded-xl text-center border border-borderSoft">
           <p class="text-[10px] uppercase font-semibold text-textMuted tracking-wider">MEDIA / ING.</p>
           <p id="statMedia" class="text-base font-bold text-accent mt-1">0.00 €</p>
         </div>
       </div>
 
-      <!-- Objetivo de Ganancias -->
-      <div class="bg-cardDark p-4 rounded-xl space-y-3 border border-slate-800">
+      <div class="bg-cardDark p-4 rounded-xl space-y-3 border border-borderSoft">
         <h3 class="text-xs font-bold text-textMuted uppercase tracking-wider">OBJETIVO DE GANANCIAS</h3>
         <div class="flex space-x-2">
-          <input type="number" step="0.01" id="inputObjetivo" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
-          <button onclick="guardarObjetivo()" class="bg-accent hover:bg-emerald-600 text-slate-950 font-semibold px-4 py-2 rounded-lg text-xs transition">
+          <input type="number" step="0.01" id="inputObjetivo" class="flex-1 bg-inputBg border border-borderSoft rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
+          <button onclick="guardarObjetivo()" class="bg-accent hover:bg-accentDark text-ink font-semibold px-4 py-2 rounded-lg text-xs transition">
             Guardar
           </button>
         </div>
-        <!-- Barra de Progreso -->
-        <div class="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-800">
+        <div class="w-full bg-inputBg rounded-full h-3 overflow-hidden border border-borderSoft">
           <div id="progresoBarra" class="bg-accent h-full transition-all duration-300" style="width: 0%"></div>
         </div>
         <p id="progresoTexto" class="text-xs text-textMuted text-center">Te faltan 0.00 € · 0% del objetivo</p>
       </div>
 
-      <!-- Ganancias por Categoría -->
+      <div class="bg-cardDark p-4 rounded-xl border border-borderSoft">
+        <h3 class="text-xs font-bold text-textMuted uppercase tracking-wider mb-2">INGRESOS POR CATEGORÍA</h3>
+        <div id="graficoCategorias"></div>
+      </div>
+
       <h3 class="text-xs font-bold text-textMuted uppercase tracking-wider pt-2">GANANCIAS POR CATEGORÍA</h3>
       <div id="listaCategorias" class="space-y-2">
-        <!-- Inyectado dinámicamente -->
+      </div>
+
+      <h3 class="text-xs font-bold text-textMuted uppercase tracking-wider pt-2">CATEGORÍAS</h3>
+      <div class="bg-cardDark p-3 rounded-xl border border-borderSoft space-y-2">
+        <div id="listaGestionCategorias" class="flex flex-wrap gap-2">
+        </div>
+        <div class="flex gap-2 pt-1">
+          <input type="text" id="inputNuevoIcono" maxlength="4" placeholder="🔸" class="w-12 bg-inputBg border border-borderSoft rounded-lg px-2 py-2 text-center text-sm focus:outline-none focus:border-accent">
+          <input type="text" id="inputNuevaCategoria" placeholder="Nueva categoría..." class="flex-1 bg-inputBg border border-borderSoft rounded-lg px-3 py-2 text-textLight text-sm focus:outline-none focus:border-accent">
+          <button onclick="anadirCategoria()" class="bg-accent hover:bg-accentDark text-ink font-semibold px-3 rounded-lg text-xs transition">Añadir</button>
+        </div>
       </div>
     </section>
 
@@ -147,14 +182,13 @@
         <p class="text-xs text-textMuted">Total ganado agrupado por mes, según la fecha de cada ingreso.</p>
       </div>
       <div id="listaMensual" class="space-y-2 pt-2">
-        <!-- Inyectado dinámicamente -->
       </div>
     </section>
 
   </main>
 
   <!-- Navegación Inferior Móvil -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-cardDark border-t border-slate-800 flex justify-around py-2 z-20">
+  <nav class="app-nav fixed bottom-0 left-0 right-0 bg-cardDark border-t border-borderSoft flex justify-around py-2 z-20">
     <button onclick="switchTab('movimientos')" id="nav-movimientos" class="flex flex-col items-center text-accent py-1 px-3">
       <i data-lucide="list-plus" class="w-5 h-5"></i>
       <span class="text-[11px] mt-1 font-medium">Movimientos</span>
@@ -169,9 +203,16 @@
     </button>
   </nav>
 
-  <!-- JavaScript App Logic -->
+  <!-- JavaScript App Logic con IndexedDB -->
   <script>
-    const CATEGORIAS = ["Clases", "Microworkers", "LEE", "UJI", "Trabajo", "Venta", "Otros"];
+    const CATEGORIAS_DEFECTO = [
+      { nombre: "Clases", icono: "📚" },
+      { nombre: "Microworkers", icono: "🖱️" },
+      { nombre: "LEE", icono: "🎓" },
+      { nombre: "Encuestas", icono: "📋" },
+      { nombre: "Venta", icono: "🏷️" },
+      { nombre: "Otros", icono: "✨" }
+    ];
     const MESES_ES = {
       1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril", 5: "Mayo", 6: "Junio",
       7: "Julio", 8: "Agosto", 9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
@@ -179,44 +220,180 @@
 
     let appData = {
       movimientos: [],
-      objetivo: 100.0
+      objetivo: 100.0,
+      categorias: CATEGORIAS_DEFECTO.map(c => ({ ...c }))
     };
 
-    // Inicialización
-    document.addEventListener("DOMContentLoaded", () => {
-      cargarDatos();
+    let editandoId = null;
+    let objetivoCelebrado = false;
+    let primerCalculoResumen = true;
+    let db = null;
+
+    // --- MÓDULO BASE DE DATOS INDEXEDDB ---
+    function abrirDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("GananciasDB", 1);
+        request.onupgradeneeded = (e) => {
+          const database = e.target.result;
+          if (!database.objectStoreNames.contains("store")) {
+            database.createObjectStore("store");
+          }
+        };
+        request.onsuccess = (e) => {
+          db = e.target.result;
+          resolve(db);
+        };
+        request.onerror = (e) => reject("Error al abrir IndexedDB: " + e.target.error);
+      });
+    }
+
+    async function cargarDatosDB() {
+      if (!db) await abrirDB();
+      return new Promise((resolve) => {
+        const tx = db.transaction("store", "readonly");
+        const store = tx.objectStore("store");
+        const request = store.get("appData");
+        request.onsuccess = () => {
+          if (request.result) {
+            appData = request.result;
+          }
+          resolve();
+        };
+        request.onerror = () => resolve();
+      });
+    }
+
+    async function guardarDatos() {
+      if (!db) await abrirDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction("store", "readwrite");
+        const store = tx.objectStore("store");
+        const request = store.put(appData, "appData");
+        request.onsuccess = () => resolve();
+        request.onerror = (e) => reject("Error al guardar en BD: " + e.target.error);
+      });
+    }
+    // ------------------------------------
+
+    function generarId() {
+      return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function iconoDeCategoria(nombre) {
+      const cat = appData.categorias.find(c => c.nombre === nombre);
+      return cat ? cat.icono : "🔸";
+    }
+
+    function normalizarAppData() {
+      if (!Array.isArray(appData.movimientos)) appData.movimientos = [];
+      appData.movimientos.forEach(m => { if (!m.id) m.id = generarId(); });
+      if (typeof appData.objetivo !== "number") appData.objetivo = 100.0;
+      if (!Array.isArray(appData.categorias) || appData.categorias.length === 0) {
+        appData.categorias = CATEGORIAS_DEFECTO.map(c => ({ ...c }));
+      }
+    }
+
+    function migrarCategorias() {
+      let cambiado = false;
+      const trabajo = appData.categorias.find(c => c.nombre === "Trabajo");
+      if (trabajo) {
+        trabajo.nombre = "Encuestas";
+        trabajo.icono = "📋";
+        appData.movimientos.forEach(m => { if (m.categoria === "Trabajo") m.categoria = "Encuestas"; });
+        cambiado = true;
+      }
+      const antes = appData.categorias.length;
+      appData.categorias = appData.categorias.filter(c => c.nombre !== "UJI");
+      if (appData.categorias.length !== antes) cambiado = true;
+
+      return cambiado;
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      await cargarDatosDB();
+      normalizarAppData();
+      if (migrarCategorias()) await guardarDatos();
       inicializarFormulario();
       renderizarTodo();
       lucide.createIcons();
     });
 
-    function cargarDatos() {
-      const guardado = localStorage.getItem("ganancias_data");
-      if (guardado) {
-        try {
-          appData = JSON.parse(guardado);
-        } catch (e) {
-          console.error("Error al cargar localStorage", e);
-        }
+    function actualizarInputObjetivo() {
+      const el = document.getElementById("inputObjetivo");
+      if (el && document.activeElement !== el) {
+        el.value = appData.objetivo || 100.0;
       }
     }
 
-    function guardarDatos() {
-      localStorage.setItem("ganancias_data", JSON.stringify(appData));
-    }
-
     function inicializarFormulario() {
-      // Fecha actual por defecto YYYY-MM-DD
       document.getElementById("inputFecha").value = new Date().toISOString().split("T")[0];
-
-      // Llenar selector de categorías
-      const selectCat = document.getElementById("inputCategoria");
-      selectCat.innerHTML = CATEGORIAS.map(c => `<option value="${c}">${c}</option>`).join("");
-
+      poblarSelectCategoria();
       document.getElementById("inputObjetivo").value = appData.objetivo || 100.0;
+      renderizarGestionCategorias();
     }
 
-    function anadirMovimiento() {
+    function poblarSelectCategoria(seleccionar) {
+      const selectCat = document.getElementById("inputCategoria");
+      const actual = seleccionar !== undefined ? seleccionar : selectCat.value;
+      selectCat.innerHTML = appData.categorias.map(c => `<option value="${c.nombre}">${c.icono} ${c.nombre}</option>`).join("");
+      if (actual && appData.categorias.some(c => c.nombre === actual)) {
+        selectCat.value = actual;
+      }
+    }
+
+    async function anadirCategoria() {
+      const iconoInput = document.getElementById("inputNuevoIcono");
+      const nombreInput = document.getElementById("inputNuevaCategoria");
+      const nombre = nombreInput.value.trim();
+      const icono = iconoInput.value.trim() || "🔸";
+
+      if (!nombre) {
+        alert("Escribe un nombre para la categoría.");
+        return;
+      }
+      if (appData.categorias.some(c => c.nombre.toLowerCase() === nombre.toLowerCase())) {
+        alert("Ya existe una categoría con ese nombre.");
+        return;
+      }
+
+      appData.categorias.push({ nombre, icono });
+      await guardarDatos();
+      poblarSelectCategoria();
+      renderizarGestionCategorias();
+      renderizarTodo();
+      iconoInput.value = "";
+      nombreInput.value = "";
+    }
+
+    async function borrarCategoria(nombre) {
+      if (appData.categorias.length <= 1) {
+        alert("Debe quedar al menos una categoría.");
+        return;
+      }
+      if (!confirm(`¿Eliminar la categoría "${nombre}"?`)) return;
+
+      appData.categorias = appData.categorias.filter(c => c.nombre !== nombre);
+      await guardarDatos();
+      poblarSelectCategoria();
+      renderizarGestionCategorias();
+      renderizarTodo();
+    }
+
+    function renderizarGestionCategorias() {
+      const cont = document.getElementById("listaGestionCategorias");
+      if (!cont) return;
+      cont.innerHTML = appData.categorias.map(c => `
+        <span class="inline-flex items-center gap-1 bg-inputBg border border-borderSoft rounded-full pl-2 pr-1 py-1 text-xs text-textLight">
+          <span>${c.icono}</span><span>${c.nombre}</span>
+          <button onclick="borrarCategoria('${c.nombre.replace(/'/g, "\\'")}')" class="text-textMuted hover:text-danger rounded-full p-0.5 transition">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </span>
+      `).join("");
+      lucide.createIcons();
+    }
+
+    async function anadirMovimiento() {
       const fecha = document.getElementById("inputFecha").value || new Date().toISOString().split("T")[0];
       const origen = document.getElementById("inputOrigen").value.trim();
       const categoria = document.getElementById("inputCategoria").value;
@@ -233,10 +410,18 @@
         return;
       }
 
-      appData.movimientos.push({ fecha, origen, categoria, importe, notas });
-      guardarDatos();
+      if (editandoId) {
+        const idx = appData.movimientos.findIndex(m => m.id === editandoId);
+        if (idx !== -1) {
+          appData.movimientos[idx] = { ...appData.movimientos[idx], fecha, origen, categoria, importe, notas };
+        }
+        editandoId = null;
+      } else {
+        appData.movimientos.push({ id: generarId(), fecha, origen, categoria, importe, notas });
+      }
+      await guardarDatos();
+      actualizarBotonFormulario();
 
-      // Resetear campos
       document.getElementById("inputOrigen").value = "";
       document.getElementById("inputImporte").value = "";
       document.getElementById("inputNotas").value = "";
@@ -244,18 +429,58 @@
       renderizarTodo();
     }
 
-    function borrarMovimiento(index) {
+    function editarMovimiento(id) {
+      const m = appData.movimientos.find(x => x.id === id);
+      if (!m) return;
+      document.getElementById("inputFecha").value = m.fecha;
+      document.getElementById("inputOrigen").value = m.origen;
+      poblarSelectCategoria(m.categoria);
+      document.getElementById("inputImporte").value = m.importe;
+      document.getElementById("inputNotas").value = m.notas || "";
+      editandoId = id;
+      actualizarBotonFormulario();
+      switchTab("movimientos");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function cancelarEdicion() {
+      editandoId = null;
+      document.getElementById("inputFecha").value = new Date().toISOString().split("T")[0];
+      document.getElementById("inputOrigen").value = "";
+      poblarSelectCategoria();
+      document.getElementById("inputImporte").value = "";
+      document.getElementById("inputNotas").value = "";
+      actualizarBotonFormulario();
+    }
+
+    function actualizarBotonFormulario() {
+      const btn = document.getElementById("btnGuardarMovimiento");
+      const btnCancel = document.getElementById("btnCancelarEdicion");
+      if (editandoId) {
+        btn.textContent = "Guardar cambios";
+        btnCancel.classList.remove("hidden");
+      } else {
+        btn.textContent = "Añadir ingreso";
+        btnCancel.classList.add("hidden");
+      }
+    }
+
+    async function borrarMovimiento(id) {
       if (confirm("¿Seguro que deseas eliminar este ingreso?")) {
-        appData.movimientos.splice(index, 1);
-        guardarDatos();
+        appData.movimientos = appData.movimientos.filter(m => m.id !== id);
+        if (editandoId === id) {
+          editandoId = null;
+          actualizarBotonFormulario();
+        }
+        await guardarDatos();
         renderizarTodo();
       }
     }
 
-    function guardarObjetivo() {
+    async function guardarObjetivo() {
       const val = parseFloat(document.getElementById("inputObjetivo").value.replace(",", "."));
       appData.objetivo = isNaN(val) ? 100.0 : val;
-      guardarDatos();
+      await guardarDatos();
       renderizarTodo();
     }
 
@@ -263,6 +488,7 @@
       renderizarMovimientos();
       renderizarResumen();
       renderizarMensual();
+      renderizarGestionCategorias();
     }
 
     function renderizarMovimientos() {
@@ -272,16 +498,21 @@
         return;
       }
 
-      // Orden descendente (más recientes primero)
-      contenedor.innerHTML = appData.movimientos.map((m, idx) => `
-        <div class="bg-cardDark p-3 rounded-xl border border-slate-800 flex items-center justify-between">
-          <div class="flex-1 min-w-0 pr-2">
-            <p class="text-sm font-semibold text-textLight truncate">${m.origen} <span class="text-textMuted font-normal">· ${m.categoria}</span></p>
-            <p class="text-xs text-textMuted">${m.fecha}${m.notas ? ' · ' + m.notas : ''}</p>
+      contenedor.innerHTML = appData.movimientos.map((m) => `
+        <div class="bg-cardDark p-3 rounded-xl border border-borderSoft flex items-center justify-between">
+          <div class="flex items-center gap-2 flex-1 min-w-0 pr-2">
+            <span class="text-lg leading-none">${iconoDeCategoria(m.categoria)}</span>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-textLight truncate">${m.origen} <span class="text-textMuted font-normal">· ${m.categoria}</span></p>
+              <p class="text-xs text-textMuted">${m.fecha}${m.notas ? ' · ' + m.notas : ''}</p>
+            </div>
           </div>
-          <div class="flex items-center space-x-3">
-            <span class="text-sm font-bold text-accent whitespace-nowrap">+${m.importe.toFixed(2)} €</span>
-            <button onclick="borrarMovimiento(${idx})" class="text-textMuted hover:text-danger p-1 transition">
+          <div class="flex items-center space-x-1">
+            <span class="text-sm font-bold text-accent whitespace-nowrap mr-1">+${m.importe.toFixed(2)} €</span>
+            <button onclick="editarMovimiento('${m.id}')" class="text-textMuted hover:text-accent p-1 transition">
+              <i data-lucide="pencil" class="w-4 h-4"></i>
+            </button>
+            <button onclick="borrarMovimiento('${m.id}')" class="text-textMuted hover:text-danger p-1 transition">
               <i data-lucide="x" class="w-4 h-4"></i>
             </button>
           </div>
@@ -302,13 +533,11 @@
       document.getElementById("statCount").innerText = count;
       document.getElementById("statMedia").innerText = `${media.toFixed(2)} €`;
 
-      // Progreso
       const porcentaje = Math.min(100, objetivo > 0 ? (total / objetivo) * 100 : 0);
       const faltan = Math.max(0, objetivo - total);
       document.getElementById("progresoBarra").style.width = `${porcentaje}%`;
       document.getElementById("progresoTexto").innerText = `Te faltan ${faltan.toFixed(2)} € · ${porcentaje.toFixed(0)}% del objetivo`;
 
-      // Desglose por categoría
       const porCat = {};
       movs.forEach(m => {
         porCat[m.categoria] = (porCat[m.categoria] || 0) + m.importe;
@@ -316,6 +545,8 @@
 
       const categoriasOrdenadas = Object.entries(porCat).sort((a, b) => b[1] - a[1]);
       const contenedorCat = document.getElementById("listaCategorias");
+
+      renderizarGraficoCategorias(categoriasOrdenadas);
 
       if (categoriasOrdenadas.length === 0) {
         contenedorCat.innerHTML = `<p class="text-xs text-textMuted text-center py-4">Aún no hay categorías registradas.</p>`;
@@ -325,12 +556,85 @@
       contenedorCat.innerHTML = categoriasOrdenadas.map(([cat, val]) => {
         const pct = total > 0 ? (val / total) * 100 : 0;
         return `
-          <div class="bg-cardDark px-3 py-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-sm">
-            <span class="text-textLight">${cat}</span>
+          <div class="bg-cardDark px-3 py-2.5 rounded-xl border border-borderSoft flex justify-between items-center text-sm">
+            <span class="text-textLight flex items-center gap-2"><span>${iconoDeCategoria(cat)}</span>${cat}</span>
             <span class="font-bold text-accent">${val.toFixed(2)} € <span class="text-xs text-textMuted font-normal">(${pct.toFixed(0)}%)</span></span>
           </div>
         `;
       }).join("");
+
+      const alcanzado = objetivo > 0 && total >= objetivo;
+      if (primerCalculoResumen) {
+        objetivoCelebrado = alcanzado;
+        primerCalculoResumen = false;
+      } else if (alcanzado && !objetivoCelebrado) {
+        lanzarConfeti();
+        objetivoCelebrado = true;
+      } else if (!alcanzado) {
+        objetivoCelebrado = false;
+      }
+    }
+
+    function lanzarConfeti() {
+      const colores = ['#E37F4D', '#C4602E', '#F2B378', '#E4572E', '#FFD59E'];
+      const contenedor = document.createElement('div');
+      contenedor.style.position = 'fixed';
+      contenedor.style.inset = '0';
+      contenedor.style.pointerEvents = 'none';
+      contenedor.style.zIndex = '9999';
+      contenedor.style.overflow = 'hidden';
+      for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.className = 'confetti-piece';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.background = colores[Math.floor(Math.random() * colores.length)];
+        p.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+        p.style.animationDelay = (Math.random() * 0.4) + 's';
+        contenedor.appendChild(p);
+      }
+      document.body.appendChild(contenedor);
+      setTimeout(() => contenedor.remove(), 4000);
+    }
+
+    function renderizarGraficoCategorias(categoriasOrdenadas) {
+      const contenedor = document.getElementById("graficoCategorias");
+      if (!contenedor) return;
+
+      if (categoriasOrdenadas.length === 0) {
+        contenedor.innerHTML = `<p class="text-xs text-textMuted text-center py-4">Aún no hay datos para graficar.</p>`;
+        return;
+      }
+
+      const anchoSvg = 320;
+      const altoSvg = 170;
+      const margenSuperior = 22;
+      const margenInferior = 36;
+      const altoBarras = altoSvg - margenSuperior - margenInferior;
+      const espacio = 10;
+      const n = categoriasOrdenadas.length;
+      const anchoBarra = Math.max(18, Math.min(42, (anchoSvg - espacio * (n + 1)) / n));
+      const anchoTotal = anchoBarra * n + espacio * (n + 1);
+      const offsetX = (anchoSvg - anchoTotal) / 2;
+      const maxVal = Math.max(...categoriasOrdenadas.map(([, val]) => val));
+
+      const barras = categoriasOrdenadas.map(([cat, val], i) => {
+        const alto = maxVal > 0 ? (val / maxVal) * altoBarras : 0;
+        const x = offsetX + espacio + i * (anchoBarra + espacio);
+        const y = margenSuperior + (altoBarras - alto);
+        return `
+          <text x="${x + anchoBarra / 2}" y="${y - 6}" text-anchor="middle" font-size="10" font-weight="700" fill="#3A2415">${val.toFixed(0)}€</text>
+          <rect x="${x}" y="${y}" width="${anchoBarra}" height="${Math.max(alto, 2)}" rx="6" fill="#E37F4D"></rect>
+          <title>${cat}: ${val.toFixed(2)} €</title>
+          <text x="${x + anchoBarra / 2}" y="${altoSvg - margenInferior + 20}" text-anchor="middle" font-size="16">${iconoDeCategoria(cat)}</text>
+        `;
+      }).join("");
+
+      contenedor.innerHTML = `
+        <svg viewBox="0 0 ${anchoSvg} ${altoSvg}" class="w-full h-auto" role="img">
+          <line x1="0" y1="${altoSvg - margenInferior}" x2="${anchoSvg}" y2="${altoSvg - margenInferior}" stroke="#F0D6B8" stroke-width="1"></line>
+          ${barras}
+        </svg>
+      `;
     }
 
     function renderizarMensual() {
@@ -363,7 +667,7 @@
         const totalMes = porMes[key];
         const nombreMes = MESES_ES[month] || `Mes ${month}`;
         return `
-          <div class="bg-cardDark px-4 py-3 rounded-xl border border-slate-800 flex justify-between items-center">
+          <div class="bg-cardDark px-4 py-3 rounded-xl border border-borderSoft flex justify-between items-center">
             <span class="text-sm font-medium text-textLight">${nombreMes} ${year}</span>
             <span class="text-sm font-bold text-accent">${totalMes.toFixed(2)} €</span>
           </div>
@@ -371,7 +675,6 @@
       }).join("");
     }
 
-    // Cambio de pestañas
     function switchTab(tabName) {
       ["movimientos", "resumen", "mensual"].forEach(t => {
         const sec = document.getElementById(`tab-${t}`);
@@ -388,7 +691,6 @@
       });
     }
 
-    // Copia de seguridad
     function exportarDatos() {
       const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -399,16 +701,20 @@
       URL.revokeObjectURL(url);
     }
 
-    function importarDatos(event) {
+    async function importarDatos(event) {
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const data = JSON.parse(e.target.result);
           if (data && Array.isArray(data.movimientos)) {
             appData = data;
-            guardarDatos();
+            normalizarAppData();
+            editandoId = null;
+            actualizarBotonFormulario();
+            poblarSelectCategoria();
+            await guardarDatos();
             renderizarTodo();
             alert("¡Datos importados correctamente!");
           } else {
