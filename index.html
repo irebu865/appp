@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
- 
+  
     :root {
       --motion-ease: cubic-bezier(.22, 1, .36, 1);
       --motion-glow: rgba(124, 58, 237, .22);
@@ -142,7 +142,102 @@
       }
     }
 
-</style></head><body>
+
+    .monthly-chart-scroll { overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; scrollbar-color: #C4B5FD transparent; }
+    .monthly-bar { opacity: 0; animation: monthly-bar-in .45s ease-out forwards; }
+    @keyframes monthly-bar-in { from { opacity: 0; } to { opacity: 1; } }
+    .monthly-bar-rect { transition: filter .25s ease, opacity .25s ease; }
+    .monthly-bar:hover .monthly-bar-rect { filter: drop-shadow(0 3px 7px rgba(124,58,237,.35)); opacity: .88; }
+
+
+    /* Fix: keep the native date picker inside its card on narrow mobile screens */
+    #inputFecha {
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      font-size: 14px;
+      padding: 9px 10px;
+      line-height: 1.35;
+    }
+    #inputFecha::-webkit-date-and-time-value {
+      text-align: left;
+      min-height: 1.35em;
+    }
+    #inputFecha::-webkit-calendar-picker-indicator {
+      margin: 0;
+      padding: 0 0 0 6px;
+    }
+    @media (max-width: 480px) {
+      #inputFecha {
+        font-size: 13px;
+        padding: 8px 9px;
+      }
+    }
+
+  
+    /* Animaciones pensadas para móvil: visibles también al tocar, no solo con hover */
+    @media (max-width: 768px) {
+      html { scroll-behavior: smooth; }
+      .app-header {
+        animation: mobile-header-in .65s cubic-bezier(.2,.8,.2,1) both;
+      }
+      @keyframes mobile-header-in {
+        from { opacity: 0; transform: translateY(-12px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      main > section, main > div, #tabMovimientos > *, #tabResumen > *, #tabMensual > * {
+        animation: mobile-content-in .55s cubic-bezier(.2,.8,.2,1) both;
+      }
+      @keyframes mobile-content-in {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      /* Pequeños rebotes al tocar botones y navegación: se activan en pantallas táctiles */
+      button, [role="button"] {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
+      }
+      button:active, [role="button"]:active {
+        transform: scale(.96);
+        filter: brightness(1.08);
+      }
+      input, select, textarea {
+        transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+      }
+      input:focus, select:focus, textarea:focus {
+        box-shadow: 0 0 0 3px rgba(124,58,237,.16);
+      }
+      .app-nav button:active {
+        transform: translateY(-3px) scale(.95);
+      }
+      #graficoCategorias svg rect, #graficoMensual svg rect {
+        transform-box: fill-box;
+        transform-origin: bottom;
+        animation: mobile-bar-rise .85s cubic-bezier(.2,.8,.2,1) both;
+      }
+      @keyframes mobile-bar-rise {
+        from { transform: scaleY(.05); opacity: .25; }
+        to { transform: scaleY(1); opacity: 1; }
+      }
+      .bg-cardDark {
+        transition: transform .22s ease, box-shadow .22s ease;
+      }
+      .bg-cardDark:active {
+        transform: scale(.99);
+        box-shadow: 0 5px 18px rgba(124,58,237,.12);
+      }
+    }
+    @media (hover: none) and (pointer: coarse) {
+      button:hover { filter: none; }
+      button:active { box-shadow: 0 5px 18px rgba(124,58,237,.2); }
+    }
+
+  </style></head><body>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -455,6 +550,16 @@
         <h2 class="text-base font-semibold text-textLight">Control mensual</h2>
         <p class="text-xs text-textMuted">Total ganado agrupado por mes, según la fecha de cada ingreso.</p>
       </div>
+      <div class="bg-cardDark p-4 rounded-xl border border-borderSoft shadow-sm space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <h3 class="text-xs font-bold text-textMuted uppercase tracking-wider">EVOLUCIÓN DE GANANCIAS POR MES</h3>
+          <span class="text-[10px] text-textMuted">Total mensual (€)</span>
+        </div>
+        <div id="graficoMensual" class="w-full overflow-hidden">
+          <p class="text-xs text-textMuted text-center py-4">Aún no hay datos para graficar.</p>
+        </div>
+      </div>
+      <h3 class="text-xs font-bold text-textMuted uppercase tracking-wider pt-2">DESGLOSE POR MES</h3>
       <div id="listaMensual" class="space-y-2 pt-2">
         <!-- Inyectado dinámicamente -->
       </div>
@@ -1025,34 +1130,99 @@
         if (!m.fecha) return;
         const [year, month] = m.fecha.split("-").map(Number);
         if (!year || !month) return;
-        const key = `${year}-${month}`;
+        const key = `${year}-${String(month).padStart(2, "0")}`;
         porMes[key] = (porMes[key] || 0) + m.importe;
       });
 
-      const mesesOrdenados = Object.keys(porMes).sort((a, b) => {
-        const [yA, mA] = a.split("-").map(Number);
-        const [yB, mB] = b.split("-").map(Number);
-        return yB - yA || mB - mA;
-      });
-
+      const mesesOrdenados = Object.keys(porMes).sort((a, b) => a.localeCompare(b));
+      const mesesRecientes = mesesOrdenados.slice().reverse();
       const contenedorMensual = document.getElementById("listaMensual");
 
-      if (mesesOrdenados.length === 0) {
+      renderizarGraficoMensual(mesesOrdenados, porMes);
+
+      if (mesesRecientes.length === 0) {
         contenedorMensual.innerHTML = `<p class="text-xs text-textMuted text-center py-6">Aún no hay ingresos registrados.</p>`;
         return;
       }
 
-      contenedorMensual.innerHTML = mesesOrdenados.map(key => {
+      contenedorMensual.innerHTML = mesesRecientes.map((key, i) => {
         const [year, month] = key.split("-").map(Number);
         const totalMes = porMes[key];
         const nombreMes = MESES_ES[month] || `Mes ${month}`;
         return `
-          <div class="bg-cardDark px-4 py-3 rounded-xl border border-borderSoft flex justify-between items-center">
+          <div class="anim-item bg-cardDark px-4 py-3 rounded-xl border border-borderSoft flex justify-between items-center" style="animation-delay:${Math.min(i, 12) * 45}ms">
             <span class="text-sm font-medium text-textLight">${nombreMes} ${year}</span>
-            <span class="text-sm font-bold text-accent">${totalMes.toFixed(2)} €</span>
+            <span class="text-sm font-bold text-accent tabular-nums">${totalMes.toFixed(2)} €</span>
           </div>
         `;
       }).join("");
+    }
+
+    function renderizarGraficoMensual(mesesOrdenados, porMes) {
+      const contenedor = document.getElementById("graficoMensual");
+      if (!contenedor) return;
+
+      if (!mesesOrdenados.length) {
+        contenedor.innerHTML = `<p class="text-xs text-textMuted text-center py-4">Añade ingresos para ver la evolución mensual.</p>`;
+        return;
+      }
+
+      const datos = mesesOrdenados.map(key => {
+        const [year, month] = key.split("-").map(Number);
+        return {
+          key,
+          label: `${(MESES_ES[month] || "").slice(0, 3)} ${String(year).slice(-2)}`,
+          fullLabel: `${MESES_ES[month]} ${year}`,
+          total: porMes[key]
+        };
+      });
+
+      const ancho = Math.max(300, datos.length * 64 + 24);
+      const alto = 220;
+      const margen = { top: 26, right: 12, bottom: 48, left: 12 };
+      const altoGrafico = alto - margen.top - margen.bottom;
+      const maxTotal = Math.max(...datos.map(d => d.total), 1);
+      const paso = datos.length > 6 ? 1 : 0;
+      const barras = datos.map((d, i) => {
+        const bw = Math.min(42, Math.max(20, (ancho - margen.left - margen.right) / datos.length * .56));
+        const slot = (ancho - margen.left - margen.right) / datos.length;
+        const x = margen.left + i * slot + (slot - bw) / 2;
+        const bh = Math.max(3, (d.total / maxTotal) * (altoGrafico - 10));
+        const y = margen.top + altoGrafico - bh;
+        const delay = i * 70;
+        return `
+          <g class="monthly-bar" style="animation-delay:${delay}ms">
+            <title>${d.fullLabel}: ${d.total.toFixed(2)} €</title>
+            <rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="7" fill="url(#monthlyGradient)" class="monthly-bar-rect">
+              <animate attributeName="height" from="0" to="${bh}" dur=".75s" begin="${delay}ms" fill="freeze" />
+              <animate attributeName="y" from="${margen.top + altoGrafico}" to="${y}" dur=".75s" begin="${delay}ms" fill="freeze" />
+            </rect>
+            <text x="${x + bw / 2}" y="${Math.max(15, y - 7)}" text-anchor="middle" font-size="${datos.length > 8 ? 9 : 10}" font-weight="700" fill="#5B21B6">${d.total.toFixed(0)}€</text>
+            <text x="${x + bw / 2}" y="${alto - 25}" text-anchor="middle" font-size="${datos.length > 10 ? 9 : 10}" fill="#6C6F93">${d.label}</text>
+          </g>
+        `;
+      }).join("");
+
+      const guias = [0, .25, .5, .75, 1].map(p => {
+        const y = margen.top + altoGrafico - altoGrafico * p;
+        return `<line x1="${margen.left}" y1="${y}" x2="${ancho - margen.right}" y2="${y}" stroke="#E3E6F7" stroke-dasharray="3 5" stroke-width="1"/>`;
+      }).join("");
+
+      contenedor.innerHTML = `
+        <div class="monthly-chart-scroll">
+          <svg viewBox="0 0 ${ancho} ${alto}" role="img" aria-label="Gráfica de ganancias por mes" style="display:block;width:100%;min-width:${Math.min(ancho, 300)}px;height:auto;overflow:visible">
+            <defs>
+              <linearGradient id="monthlyGradient" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0%" stop-color="#7C3AED"/>
+                <stop offset="100%" stop-color="#C4B5FD"/>
+              </linearGradient>
+            </defs>
+            ${guias}
+            ${barras}
+          </svg>
+        </div>
+        <p class="text-[10px] text-textMuted text-center mt-1">Cada barra representa el total acumulado de ese mes.</p>
+      `;
     }
 
     // Cambio de pestañas
