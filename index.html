@@ -1,5 +1,5 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
-  
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:0;padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
+    /* ===== MODO ANIMACIONES A TOPE ===== */
     :root {
       --motion-ease: cubic-bezier(.22, 1, .36, 1);
       --motion-glow: rgba(124, 58, 237, .22);
@@ -237,6 +237,11 @@
       button:active { box-shadow: 0 5px 18px rgba(124,58,237,.2); }
     }
 
+  
+    /* Evita el hueco superior en iPhone al abrir la app como archivo/web-app */
+    :root { padding-top: 0 !important; }
+    body { padding-top: 0 !important; margin-top: 0 !important; }
+    header.app-header { margin-top: 0 !important; }
   </style></head><body>
 <!DOCTYPE html>
 <html lang="es">
@@ -301,7 +306,7 @@
       100% { transform: translate(-3%, 3%) scale(1.08); }
     }
     header.app-header {
-      padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+      padding-top: 0.75rem;
       backdrop-filter: blur(6px);
     }
     nav.app-nav {
